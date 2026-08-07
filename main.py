@@ -46,7 +46,7 @@ async def populate_queue(workqueue: Workqueue):
                 "aktivitet_id": aktivitet["id"],
                 "borger_cpr": cpr
             }
-            workqueue.add_item(data = data, reference = aktivitet["id"])
+            workqueue.add_item(data=data, reference= str(aktivitet["id"]))
 
 
         
@@ -63,7 +63,7 @@ async def process_workqueue(workqueue: Workqueue):
 
             try:
                 # Find den rette besked
-                borger = nexus.borgere.hent_borger(data["Cpr"])
+                borger = nexus.borgere.hent_borger(data["borger_cpr"])
                 indbakke = nexus.medcom.hent_alle_beskeder(borger)
                 beskedreference = next((b for b in indbakke if b["id"] == data["aktivitet_id"]), None)
                 if beskedreference is None:
@@ -84,7 +84,7 @@ async def process_workqueue(workqueue: Workqueue):
                 nexus.medcom.arkiver_besked(besked_der_skal_arkiveres)
                 tracker.track_task(procesnavn) 
                 
-            except WorkItemError as e:
+            except (WorkItemError, KeyError, ValueError) as e:
                 # A WorkItemError represents a soft error that indicates the item should be passed to manual processing or a business logic fault
                 logger.error(f"Error processing item: {data}. Error: {e}")
                 item.fail(str(e))
