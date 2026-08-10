@@ -148,17 +148,22 @@ if __name__ == "__main__":
             or path.startswith("//")
         )
 
-    # Load excel mapping data once on startup (only if files exist on current system)
-    if os.path.isfile(args.excel_file):
-        load_excel_mapping(args.excel_file)
-    elif not is_windows_path(args.excel_file):
-        raise FileNotFoundError(f"Excel file not found: {args.excel_file}")
-
-    # Get rules from excel mapping (implemented in process.config)
-    regler = get_regler()
+    # regler will be loaded only when populating the queue
 
     # Queue management
     if args.queue:
+        if not args.excel_file:
+            parser.error('--excel-file is required for populate_queue')
+
+        # Load excel mapping data (skip validation for Windows paths on Linux)
+        if os.path.isfile(args.excel_file):
+            load_excel_mapping(args.excel_file)
+        elif not is_windows_path(args.excel_file):
+            parser.error(f"Excel file not found: {args.excel_file}")
+
+        # Get rules from excel mapping (implemented in process.config)
+        regler = get_regler()
+
         workqueue.clear_workqueue(WorkItemStatus.NEW)
         asyncio.run(populate_queue(workqueue))
         sys.exit(0)
