@@ -74,8 +74,8 @@ async def process_workqueue(workqueue: Workqueue):
                 # Opret opgave:
                 nexus.opgaver.opret_opgave(
                     objekt=besked_der_skal_arkiveres,
-                    opgave_type="Leverandørvalg",
-                    titel="Leverandørvalg",
+                    opgave_type="Ny visitation sygepleje §138",
+                    titel="Ny visitation sygepleje §138 - LK",
                     ansvarlig_organisation="Myndighed Sygeplejerådgivere",
                     start_dato=datetime.today(),
                     forfald_dato=datetime.today()
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         username=tracking_credential.username, 
         password=tracking_credential.password
     )
-
+    
    # Parse command line arguments
     parser = argparse.ArgumentParser(description=procesnavn)
     parser.add_argument(
