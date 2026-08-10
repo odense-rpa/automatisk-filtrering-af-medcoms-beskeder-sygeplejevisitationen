@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 import os
 import sys
@@ -24,7 +24,8 @@ async def populate_queue(workqueue: Workqueue):
 
     # hent beskeder / aktivitetslisten
     aktivitetsliste = nexus.aktivitetslister.hent_aktivitetsliste(navn="MedCom - Korrespondancer", organisation=None, medarbejder=None)
-
+    # behold kun bekseder fra de sidste 30 dage:
+    aktivitetsliste = [x for x in aktivitetsliste if x["date"] > (datetime.today() - timedelta(days=30)).isoformat()]
     # for hver besked, skal borgeren hentes og finde organisationer forbundet til
     for aktivitet in aktivitetsliste:
         cpr = aktivitet["patients"][0]["patientIdentifier"]["identifier"]
@@ -75,7 +76,7 @@ async def process_workqueue(workqueue: Workqueue):
                     objekt=besked_der_skal_arkiveres,
                     opgave_type="Leverandørvalg",
                     titel="Leverandørvalg",
-                    ansvarlig_organisation="Sygeplejevisitation",
+                    ansvarlig_organisation="Myndighed Sygeplejerådgivere",
                     start_dato=datetime.today(),
                     forfald_dato=datetime.today()
                 )
