@@ -58,7 +58,9 @@ def load_excel_mapping(file_path: str, mapping_type: str = "excel"):
             rows = []
 
             # Process each data row (starting after the detected header row)
-            for row in worksheet.iter_rows(min_row=header_row_index + 1, values_only=True):
+            for row in worksheet.iter_rows(
+                min_row=header_row_index + 1, values_only=True
+            ):
                 # Create dictionary for this row
                 row_dict = {}
                 for idx, header in enumerate(headers):
@@ -109,6 +111,8 @@ def get_regler() -> List[str]:
     regler = [r for r in regler if r]
 
     if not regler:
-        raise ValueError("The 'Liste' sheet exists but contains no rows with values. Please check the Excel file.")
+        raise ValueError(
+            "The 'Liste' sheet exists but contains no rows with values. Please check the Excel file."
+        )
 
     return regler
