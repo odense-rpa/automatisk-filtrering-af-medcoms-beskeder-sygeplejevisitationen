@@ -45,6 +45,30 @@ async def populate_queue(workqueue: Workqueue):
         if cpr is None or cpr == "":
             continue
         borger = nexus.borgere.hent_borger(cpr)
+
+        fuld_aktivitet = nexus.hent_fra_reference(aktivitet)
+
+        # Ignorer hvis beskeden indeholder forløb med Rusmiddel
+        forløb = fuld_aktivitet["pathwayAssociation"]["placement"]["name"]
+        if forløb == "MedCom - Rusmiddel":
+            continue
+
+        aktivitets_opgaver = nexus.opgaver.hent_opgaver(fuld_aktivitet)
+
+        # gennemgår titlerne for opgaverne på aktivitet
+        aktivitets_opgave_title = next(
+            (
+                a
+                for a in aktivitets_opgaver
+                if a["title"] == "Ny visitation sygepleje §138 - LK"
+            ),
+            None,
+        )
+
+        # hvis der er returneres et objekt, altså en opgavetitel der matcher ønsket ignoreret titel, hopper vi ud til næste aktivitet i aktivitetslisten
+        if aktivitets_opgave_title:
+            continue
+
         borgers_organisationer = nexus.organisationer.hent_organisationer_for_borger(
             borger
         )
@@ -75,14 +99,17 @@ async def process_workqueue(workqueue: Workqueue):
             try:
                 # Find den rette besked
                 borger = nexus.borgere.hent_borger(data["borger_cpr"])
+
                 indbakke = nexus.medcom.hent_alle_beskeder(borger)
                 beskedreference = next(
                     (b for b in indbakke if b["id"] == data["aktivitet_id"]), None
                 )
+
                 if beskedreference is None:
                     raise ValueError(
                         f"Besked ikke fundet med id: {data['aktivitet_id']}"
                     )
+
                 besked_der_skal_arkiveres = nexus.medcom.hent_besked(beskedreference)
 
                 # Opret opgave:
@@ -103,8 +130,6 @@ async def process_workqueue(workqueue: Workqueue):
                 # A WorkItemError represents a soft error that indicates the item should be passed to manual processing or a business logic fault
                 logger.error(f"Error processing item: {data}. Error: {e}")
                 item.fail(str(e))
-
-    print("hej")
 
 
 if __name__ == "__main__":
@@ -153,7 +178,7 @@ if __name__ == "__main__":
     # Queue management
     if args.queue:
         if not args.excel_file:
-            parser.error('--excel-file is required for populate_queue')
+            parser.error("--excel-file is required for populate_queue")
 
         # Load excel mapping data (skip validation for Windows paths on Linux)
         if os.path.isfile(args.excel_file):
