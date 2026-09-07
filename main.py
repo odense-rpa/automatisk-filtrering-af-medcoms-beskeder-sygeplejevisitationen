@@ -10,6 +10,7 @@ from kmd_nexus_client import NexusClientManager
 from kmd_nexus_client.tree_helpers import filter_by_path
 
 from process.config import load_excel_mapping, get_regler
+from process.schedule import is_sambovagt_active
 
 from automation_server_client import (
     AutomationServer,
@@ -111,6 +112,17 @@ async def process_workqueue(workqueue: Workqueue):
                     )
 
                 besked_der_skal_arkiveres = nexus.medcom.hent_besked(beskedreference)
+
+                if is_sambovagt_active(besked_der_skal_arkiveres["sender"]["name"]):
+                    # Opret en separat opgave til Sambovagt
+                    nexus.opgaver.opret_opgave(
+                        objekt=besked_der_skal_arkiveres,
+                        opgave_type="Ny visitation sygepleje §138",
+                        titel="Ny visitation sygepleje §138 - LK",
+                        ansvarlig_organisation="Sambovagt",
+                        start_dato=datetime.today(),
+                        forfald_dato=datetime.today(),
+                    )
 
                 # Opret opgave:
                 nexus.opgaver.opret_opgave(
