@@ -118,8 +118,8 @@ async def process_workqueue(workqueue: Workqueue):
                     nexus.opgaver.opret_opgave(
                         objekt=besked_der_skal_arkiveres,
                         opgave_type="Ny visitation sygepleje §138",
-                        titel="Ny visitation sygepleje §138 - LK",
-                        ansvarlig_organisation="Sambovagt",
+                        titel="Korrespondance",
+                        ansvarlig_organisation="MedCom SAMBOvagt",
                         start_dato=datetime.today(),
                         forfald_dato=datetime.today(),
                     )
