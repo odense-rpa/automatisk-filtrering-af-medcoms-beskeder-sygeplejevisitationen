@@ -26,9 +26,6 @@ procesnavn = "Automatisk filtrering af Medcoms for Sygeplejevisitation"
 
 
 async def populate_queue(workqueue: Workqueue):
-    logger = logging.getLogger(__name__)
-
-    logger.info("Hello from populate workqueue!")
 
     # hent beskeder / aktivitetslisten
     aktivitetsliste = nexus.aktivitetslister.hent_aktivitetsliste(
@@ -45,7 +42,11 @@ async def populate_queue(workqueue: Workqueue):
         cpr = aktivitet["patients"][0]["patientIdentifier"]["identifier"]
         if cpr is None or cpr == "":
             continue
-        borger = nexus.borgere.hent_borger(cpr)
+        try:
+            borger = nexus.borgere.hent_borger(cpr)
+        except Exception as e:
+            logging.warning(f"Kunne ikke hente borger, springer over: {e}")
+            continue
 
         fuld_aktivitet = nexus.hent_fra_reference(aktivitet)
 
